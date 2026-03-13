@@ -16,7 +16,7 @@ struct SidebarView: View {
 
             // Actions
             VStack(spacing: 0) {
-                sidebarRow(icon: "plus", label: "New Terminal") {
+                sidebarRow(icon: "plus", label: "New Session") {
                     sessionManager.openFolderPicker()
                 }
                 sidebarRow(icon: "square.and.arrow.down", label: "Import") {

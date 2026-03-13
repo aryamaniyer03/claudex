@@ -47,7 +47,7 @@ struct EmptyStateView: View {
                     .font(.custom("Georgia", size: 22).weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
             }
-            Text("Open a terminal or import from Terminal.app")
+            Text("Start a new Claude session or import from Terminal.app")
                 .font(.system(size: 12))
                 .foregroundStyle(Theme.textDim)
         }
@@ -55,7 +55,7 @@ struct EmptyStateView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 12) {
-            emptyButton(icon: "plus", label: "New Terminal", shortcut: "\u{2318}T") {
+            emptyButton(icon: "plus", label: "New Session", shortcut: "\u{2318}T") {
                 sessionManager.openFolderPicker()
             }
             emptyButton(icon: "square.and.arrow.down", label: "Import", shortcut: "\u{2318}\u{21E7}I") {

@@ -4,9 +4,9 @@ struct AppCommands: Commands {
     @FocusedObject var sessionManager: SessionManager?
 
     var body: some Commands {
-        // Replace default New Window with our New Terminal
+        // Replace default New Window with our New Session
         CommandGroup(replacing: .newItem) {
-            Button("New Terminal") {
+            Button("New Session") {
                 sessionManager?.openFolderPicker()
             }
             .keyboardShortcut("t", modifiers: .command)
@@ -21,7 +21,7 @@ struct AppCommands: Commands {
 
             Divider()
 
-            Button("Close Terminal") {
+            Button("Close Session") {
                 sessionManager?.closeSelectedSession()
             }
             .keyboardShortcut("w", modifiers: .command)

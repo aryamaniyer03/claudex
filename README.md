@@ -48,7 +48,7 @@ This builds a release binary, creates `Claudex.app`, codesigns it, and installs 
 
 | Shortcut | Action |
 |----------|--------|
-| Cmd+T | New terminal (folder picker) |
+| Cmd+T | New session (folder picker, auto-launches Claude) |
 | Cmd+W | Close current session |
 | Cmd+Up/Down | Previous/next session |
 | Cmd+Shift+[/] | Previous/next session |

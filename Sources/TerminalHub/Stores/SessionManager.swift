@@ -225,11 +225,11 @@ final class SessionManager: ObservableObject {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = "Choose a folder to open in a new terminal"
-        panel.prompt = "Open Terminal Here"
+        panel.message = "Choose a project folder to start a Claude session"
+        panel.prompt = "Open Session"
 
         if panel.runModal() == .OK, let url = panel.url {
-            createSession(directory: url.path)
+            createSession(directory: url.path, initialCommand: "claude")
         }
     }
 
