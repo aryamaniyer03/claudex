@@ -1,10 +1,27 @@
 import Foundation
 
 /// Generates short session titles using the user's Claude Code OAuth token.
-/// Uses claude-3-haiku (cheapest/fastest model) via the Anthropic Messages API.
+/// Uses a configurable Anthropic model via the Messages API.
 enum LLMService {
     private static let endpoint = URL(string: "https://api.anthropic.com/v1/messages")!
-    private static let model = "claude-3-haiku-20240307"
+    private static let defaultModel = "claude-3-5-haiku-latest"
+
+    /// Allow overrides so releases are not tied to one historical model snapshot.
+    private static var model: String {
+        let env = ProcessInfo.processInfo.environment["CLAUDEX_AUTOTITLE_MODEL"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let env, !env.isEmpty {
+            return env
+        }
+
+        let stored = UserDefaults.standard.string(forKey: "Claudex.autoTitleModel")?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let stored, !stored.isEmpty {
+            return stored
+        }
+
+        return defaultModel
+    }
 
     /// Generate a short (3-6 word) title from terminal output.
     @MainActor

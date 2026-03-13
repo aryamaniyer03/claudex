@@ -47,7 +47,15 @@ cd claudex
 ./bundle.sh
 ```
 
-This builds a release binary, creates `Claudex.app`, codesigns it, and installs to `/Applications`.
+This builds a release binary, creates `Claudex.app`, and codesigns it locally in the repo.
+
+Optional install steps:
+
+```bash
+./bundle.sh --install-app --install-cli
+```
+
+You can also override install locations with `APP_INSTALL_DIR` and `CLI_INSTALL_DIR`.
 
 ## Usage
 

@@ -6,7 +6,7 @@ struct DiscoveredTerminal: Identifiable {
     let pid: pid_t
     let shellName: String
     let cwd: String
-    let windowID: Int
+    let windowID: Int       // <= 0 means the original window cannot be targeted for closing
     let tabIndex: Int
     let runningCommand: String?  // e.g. "claude --dangerously-skip-permissions"
 }

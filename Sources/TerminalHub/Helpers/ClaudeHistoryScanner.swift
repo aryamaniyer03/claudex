@@ -49,21 +49,26 @@ enum ClaudeHistoryScanner {
 
                 // Parse first few lines for metadata
                 let meta = parseConversationMeta(file)
+                guard let cwd = resolvedProjectPath(meta.cwd, encodedProject: projName) else {
+                    continue
+                }
 
                 threads.append(ClaudeThread(
                     id: sessionId,
                     projectDir: projName,
-                    cwd: meta.cwd ?? decodeProjPath(projName),
+                    cwd: cwd,
                     slug: meta.slug,
                     firstMessage: meta.firstMessage,
                     modifiedAt: mtime
                 ))
             }
 
+            if threads.isEmpty { continue }
+
             // Sort threads newest first
             threads.sort { $0.modifiedAt > $1.modifiedAt }
 
-            let realPath = threads.first?.cwd ?? decodeProjPath(projName)
+            let realPath = threads[0].cwd
             let displayName = (realPath as NSString).lastPathComponent
 
             projects.append(ClaudeProject(
@@ -131,6 +136,25 @@ enum ClaudeHistoryScanner {
         }
 
         return meta
+    }
+
+    private static func resolvedProjectPath(_ explicitPath: String?, encodedProject: String) -> String? {
+        if let explicitPath {
+            let trimmed = explicitPath.trimmingCharacters(in: .whitespacesAndNewlines)
+            if isExistingDirectory(trimmed) {
+                return trimmed
+            }
+        }
+
+        let decoded = decodeProjPath(encodedProject)
+        guard isExistingDirectory(decoded) else { return nil }
+        return decoded
+    }
+
+    private static func isExistingDirectory(_ path: String) -> Bool {
+        guard !path.isEmpty else { return false }
+        var isDir: ObjCBool = false
+        return FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue
     }
 
     /// Decode a project directory name back to a filesystem path.

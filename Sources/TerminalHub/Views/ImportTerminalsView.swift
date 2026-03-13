@@ -7,7 +7,7 @@ struct ImportTerminalsView: View {
     @State private var discovered: [DiscoveredTerminal] = []
     @State private var selected: Set<String> = []
     @State private var isLoading = true
-    @State private var closeAfterImport = true
+    @State private var closeAfterImport = false
     @State private var hoveredID: String?
 
     var body: some View {
@@ -94,7 +94,7 @@ struct ImportTerminalsView: View {
             Text("No sessions found")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Theme.textMuted)
-            Text("No Claude Code sessions running in Terminal.app")
+            Text("No Claude Code sessions found in supported terminals")
                 .font(.system(size: 11))
                 .foregroundStyle(Theme.textDim)
             Spacer()
@@ -110,8 +110,15 @@ struct ImportTerminalsView: View {
                     .foregroundStyle(Theme.textMuted)
             }
             .toggleStyle(.checkbox)
+            .disabled(!canCloseOriginals)
 
             Spacer()
+
+            if !canCloseOriginals {
+                Text("Original-window cleanup is unavailable for these imports")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.textDim)
+            }
 
             Button("Cancel") { isPresented = false }
                 .buttonStyle(SheetButtonStyle(isProminent: false))
@@ -139,6 +146,10 @@ struct ImportTerminalsView: View {
         return "(\(c))"
     }
 
+    private var canCloseOriginals: Bool {
+        discovered.contains { $0.windowID > 0 }
+    }
+
     private func loadTerminals() async {
         isLoading = true
         let results = await Task.detached {
@@ -153,7 +164,7 @@ struct ImportTerminalsView: View {
         let toImport = selected.isEmpty
             ? discovered
             : discovered.filter { selected.contains($0.id) }
-        let windowIDs = Set(toImport.map(\.windowID))
+        let windowIDs = Set(toImport.map(\.windowID).filter { $0 > 0 })
         for t in toImport {
             // If Claude Code was running, resume it with --continue
             var initCommand: String? = nil
@@ -178,7 +189,7 @@ struct ImportTerminalsView: View {
                 initialCommand: initCommand
             )
         }
-        if closeAfterImport {
+        if closeAfterImport && !windowIDs.isEmpty {
             Task.detached { TerminalDiscovery.closeTerminalAppWindows(windowIDs) }
         }
         isPresented = false
