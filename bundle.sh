@@ -7,7 +7,7 @@ APP_BUNDLE="${APP_NAME}.app"
 CONTENTS="${APP_BUNDLE}/Contents"
 MACOS="${CONTENTS}/MacOS"
 RESOURCES="${CONTENTS}/Resources"
-ICON_FILE="Claudex.icon"
+ICON_FILE="$(cd "$(dirname "$0")" && pwd)/Claudex.icon"
 
 echo "==> Building ${APP_NAME} (release)..."
 swift build -c release
@@ -39,26 +39,22 @@ fi
 # Compile .icon file using actool (Icon Composer format)
 echo "==> Compiling app icon..."
 ICON_COMPILED=false
-# Try repo-local icon first, then ~/Downloads fallback
-for icon_candidate in "${ICON_FILE}" "${HOME}/Downloads/Claudex.icon"; do
-    if [ -f "${icon_candidate}" ]; then
-        ICON_TMP=$(mktemp -d)
-        RESOURCES_ABS=$(cd "${RESOURCES}" && pwd)
-        if xcrun actool \
-            --compile "${RESOURCES_ABS}" \
-            --platform macosx \
-            --minimum-deployment-target 14.0 \
-            --app-icon "Claudex" \
-            --include-all-app-icons \
-            --output-partial-info-plist "${ICON_TMP}/Icon-Info.plist" \
-            "${icon_candidate}" 2>&1 | grep -q "output-files"; then
-            echo "    Icon compiled via actool"
-            ICON_COMPILED=true
-        fi
-        rm -rf "${ICON_TMP}"
-        ${ICON_COMPILED} && break
+if [ -f "${ICON_FILE}" ]; then
+    ICON_TMP=$(mktemp -d)
+    RESOURCES_ABS=$(cd "${RESOURCES}" && pwd)
+    if xcrun actool \
+        --compile "${RESOURCES_ABS}" \
+        --platform macosx \
+        --minimum-deployment-target 14.0 \
+        --app-icon "Claudex" \
+        --include-all-app-icons \
+        --output-partial-info-plist "${ICON_TMP}/Icon-Info.plist" \
+        "${ICON_FILE}" 2>&1 | grep -q "output-files"; then
+        echo "    Icon compiled via actool"
+        ICON_COMPILED=true
     fi
-done
+    rm -rf "${ICON_TMP}"
+fi
 if ! ${ICON_COMPILED}; then
     if [ -f "AppIcon.icns" ]; then
         cp AppIcon.icns "${RESOURCES}/AppIcon.icns"

@@ -25,6 +25,5 @@ Secrets.swift
 # Package manager
 Package.resolved
 TerminalHub.app/
-AppIcon.icns
 AppIcon.png
 *.dmg
