@@ -85,10 +85,6 @@ Terminal views are owned by the model layer (`TerminalSession`), not SwiftUI. Th
 
 ## Configuration
 
-### Auto-titling (optional)
-
-Set `OPENROUTER_API_KEY` to enable LLM-powered session titles. Without it, sessions use the directory name.
-
 ### tmux
 
 Claudex uses its own tmux socket (`terminalhub`) and config (`~/.config/terminalhub/tmux.conf`) — won't interfere with your personal tmux.

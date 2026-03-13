@@ -138,7 +138,8 @@ final class ClaudeAuthService: ObservableObject {
 
     // MARK: - Token Refresh
 
-    private func ensureValidToken() async -> String? {
+    /// Returns a valid OAuth token, refreshing if needed. Used by LLMService for auto-titling.
+    func ensureValidToken() async -> String? {
         guard var token = accessToken else { return nil }
 
         // If token expires within 5 minutes, refresh it
