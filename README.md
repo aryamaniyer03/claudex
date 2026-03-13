@@ -57,6 +57,12 @@ Optional install steps:
 
 You can also override install locations with `APP_INSTALL_DIR` and `CLI_INSTALL_DIR`.
 
+To package a release DMG locally:
+
+```bash
+./bundle.sh --create-dmg
+```
+
 ## Usage
 
 1. **New session** — Cmd+T to pick a project folder (auto-launches Claude)
