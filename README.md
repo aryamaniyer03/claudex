@@ -1,10 +1,24 @@
-# Claudex
+<p align="center">
+  <img src="Sources/TerminalHub/Resources/claudex-icon.png" width="128" alt="Claudex icon">
+</p>
 
-A native macOS terminal session manager built for Claude Code. Manage all your Claude Code sessions in a single window with persistent tmux sessions, conversation history browsing, and seamless session import.
+<h1 align="center">Claudex</h1>
+
+<p align="center">
+  All Claude Code needed was a home.
+</p>
+
+<p align="center">
+  <a href="https://github.com/aryamaniyer03/claudex/releases/latest">Download</a> · <a href="#build-from-source">Build from source</a> · <a href="#features">Features</a>
+</p>
+
+<p align="center">
+  <img src="screenshot.png" width="800" alt="Claudex screenshot">
+</p>
 
 ## Features
 
-- **Multi-session workspace** — Run multiple terminal sessions side by side with instant switching (Cmd+Up/Down, Cmd+1-9)
+- **Multi-session workspace** — All your Claude Code sessions in one window with instant switching (Cmd+Up/Down, Cmd+1-9)
 - **Persistent sessions** — Sessions survive app restarts via tmux backend
 - **Thread history** — Browse all past Claude Code conversations grouped by project, click to resume
 - **Import from Terminal.app** — Absorb running Claude Code sessions with one click
@@ -13,23 +27,23 @@ A native macOS terminal session manager built for Claude Code. Manage all your C
 - **Usage tracking** — See your Claude API session and weekly usage at a glance
 - **Auto-titling** — Sessions get descriptive titles based on what you're working on
 
-## Requirements
+## Download
+
+Grab the latest DMG from the [Releases page](https://github.com/aryamaniyer03/claudex/releases/latest).
+
+Open the DMG, drag Claudex to Applications. On first launch, right-click the app and select "Open" (required once since the app isn't notarized).
+
+### Requirements
 
 - macOS 14.0 (Sonoma) or later
 - [tmux](https://github.com/tmux/tmux) installed via Homebrew (`brew install tmux`)
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI (`claude login` completed)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed and logged in (`claude login`)
 
-## Build
+## Build from source
 
 ```bash
-git clone https://github.com/aryamaniyer/claudex.git
+git clone https://github.com/aryamaniyer03/claudex.git
 cd claudex
-swift build
-```
-
-## Install
-
-```bash
 ./bundle.sh
 ```
 
@@ -37,26 +51,25 @@ This builds a release binary, creates `Claudex.app`, codesigns it, and installs 
 
 ## Usage
 
-1. **Launch** — Open Claudex from `/Applications` or `open /Applications/Claudex.app`
-2. **New session** — Cmd+T to pick a folder, or drag a folder from Finder into the sidebar
-3. **Switch sessions** — Cmd+Up/Down arrows, Cmd+Shift+[/], or Cmd+1-9
-4. **Import sessions** — Cmd+Shift+I to import running Claude Code sessions from Terminal.app
-5. **Resume threads** — Click any conversation in the sidebar's thread history
-6. **Close session** — Cmd+W
+1. **New session** — Cmd+T to pick a project folder (auto-launches Claude)
+2. **Switch sessions** — Cmd+Up/Down arrows, Cmd+Shift+[/], or Cmd+1-9
+3. **Import sessions** — Cmd+Shift+I to import running Claude Code sessions from Terminal.app
+4. **Resume threads** — Click any conversation in the sidebar's thread history
+5. **Close session** — Cmd+W
 
-## Keyboard Shortcuts
+## Keyboard shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| Cmd+T | New session (folder picker, auto-launches Claude) |
-| Cmd+W | Close current session |
-| Cmd+Up/Down | Previous/next session |
-| Cmd+Shift+[/] | Previous/next session |
-| Cmd+1-9 | Jump to session by number |
+| Cmd+T | New session (auto-launches Claude) |
+| Cmd+W | Close session |
+| Cmd+Up/Down | Navigate sessions |
+| Cmd+Shift+[/] | Navigate sessions |
+| Cmd+1-9 | Jump to session |
 | Cmd+Shift+I | Import from Terminal.app |
 | Cmd+Control+S | Toggle sidebar |
 | Cmd+Control+P | Toggle preview panel |
-| Cmd++/- | Increase/decrease font size |
+| Cmd++/- | Font size |
 | Cmd+0 | Reset font size |
 
 ## Architecture
@@ -66,37 +79,26 @@ SwiftUI App
 ├── Sidebar (sessions + thread history + usage)
 ├── Terminal (NSViewRepresentable → SwiftTerm → tmux)
 └── Preview panel (file viewer)
-
-SessionManager — session CRUD, persistence, font management
-TerminalSession — owns LocalProcessTerminalView, tmux lifecycle
-ClaudeAuthService — reads OAuth from Keychain, tracks API usage
-ClaudeHistoryScanner — indexes ~/.claude/projects/ conversation files
 ```
 
-Key design: Terminal views are owned by the model layer (`TerminalSession`), not SwiftUI. The `NSViewRepresentable` swaps terminal subviews in/out without destroying running processes.
+Terminal views are owned by the model layer (`TerminalSession`), not SwiftUI. The `NSViewRepresentable` swaps terminal subviews in/out without destroying running processes.
 
 ## Configuration
 
 ### Auto-titling (optional)
 
-Set the `OPENROUTER_API_KEY` environment variable to enable LLM-powered session titles:
-
-```bash
-export OPENROUTER_API_KEY="your-key-here"
-```
-
-Without this, sessions use the directory name as their title.
+Set `OPENROUTER_API_KEY` to enable LLM-powered session titles. Without it, sessions use the directory name.
 
 ### tmux
 
-Claudex uses its own tmux socket (`terminalhub`) and config (`~/.config/terminalhub/tmux.conf`) — it won't interfere with your personal tmux setup.
+Claudex uses its own tmux socket (`terminalhub`) and config (`~/.config/terminalhub/tmux.conf`) — won't interfere with your personal tmux.
 
-## Tech Stack
+## Tech stack
 
-- Swift 6 + SwiftUI (macOS 14+)
-- [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) v1.11.2 — terminal emulation
-- tmux — session persistence
-- Claude Code OAuth API — usage tracking
+- Swift + SwiftUI (macOS 14+)
+- [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) v1.11.2
+- tmux for session persistence
+- Claude Code OAuth API for usage tracking
 
 ## License
 
