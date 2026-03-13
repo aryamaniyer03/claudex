@@ -1,0 +1,19 @@
+#!/bin/bash
+# claudex-open — Open a file in Claudex's preview panel.
+# Usage: claudex-open /path/to/file.pdf
+#        claudex-open ~/Documents/report.docx
+
+if [ -z "$1" ]; then
+    echo "Usage: claudex-open <file>"
+    exit 1
+fi
+
+FILE=$(realpath "$1" 2>/dev/null || echo "$1")
+
+if [ ! -f "$FILE" ]; then
+    echo "File not found: $FILE"
+    exit 1
+fi
+
+mkdir -p ~/.claudex
+echo "$FILE" > ~/.claudex/preview-request
