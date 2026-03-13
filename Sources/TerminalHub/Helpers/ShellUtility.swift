@@ -22,12 +22,32 @@ enum ShellUtility {
 
     /// Find tmux binary, or nil if not installed
     static func findTmux() -> String? {
+        // Check common paths first
         let candidates = [
-            "/opt/homebrew/bin/tmux",
-            "/usr/local/bin/tmux",
-            "/usr/bin/tmux",
+            "/opt/homebrew/bin/tmux",      // Apple Silicon Homebrew
+            "/usr/local/bin/tmux",         // Intel Homebrew
+            "/usr/bin/tmux",               // System
+            "/opt/local/bin/tmux",         // MacPorts
         ]
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
+        if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
+            return found
+        }
+        // Fall back to `which tmux` to find it anywhere in PATH
+        let proc = Process()
+        let pipe = Pipe()
+        proc.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+        proc.arguments = ["tmux"]
+        proc.standardOutput = pipe
+        proc.standardError = FileHandle.nullDevice
+        try? proc.run()
+        proc.waitUntilExit()
+        guard proc.terminationStatus == 0 else { return nil }
+        let path = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let path, !path.isEmpty, FileManager.default.isExecutableFile(atPath: path) {
+            return path
+        }
+        return nil
     }
 
     /// Path to TerminalHub's dedicated tmux config. Created on first call.

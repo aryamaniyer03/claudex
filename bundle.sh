@@ -7,7 +7,7 @@ APP_BUNDLE="${APP_NAME}.app"
 CONTENTS="${APP_BUNDLE}/Contents"
 MACOS="${CONTENTS}/MacOS"
 RESOURCES="${CONTENTS}/Resources"
-ICON_FILE="${HOME}/Downloads/Claudex.icon"
+ICON_FILE="Claudex.icon"
 
 echo "==> Building ${APP_NAME} (release)..."
 swift build -c release
@@ -20,27 +20,53 @@ mkdir -p "${RESOURCES}"
 # Copy binary
 cp "${BUILD_DIR}/${APP_NAME}" "${MACOS}/${APP_NAME}"
 
+# Copy SPM resource bundle (contains logo/icon PNGs)
+# Detect architecture automatically instead of hardcoding arm64
+RESOURCE_BUNDLE=""
+for arch_dir in .build/arm64-apple-macosx/release .build/x86_64-apple-macosx/release .build/release; do
+    if [ -d "${arch_dir}/Claudex_Claudex.bundle" ]; then
+        RESOURCE_BUNDLE="${arch_dir}/Claudex_Claudex.bundle"
+        break
+    fi
+done
+if [ -n "${RESOURCE_BUNDLE}" ]; then
+    cp -R "${RESOURCE_BUNDLE}" "${RESOURCES}/Claudex_Claudex.bundle"
+    echo "    Copied resource bundle from ${RESOURCE_BUNDLE}"
+else
+    echo "    WARNING: SPM resource bundle not found, logo/icon will be missing"
+fi
+
 # Compile .icon file using actool (Icon Composer format)
 echo "==> Compiling app icon..."
-ICON_TMP=$(mktemp -d)
-RESOURCES_ABS=$(cd "${RESOURCES}" && pwd)
-if xcrun actool \
-    --compile "${RESOURCES_ABS}" \
-    --platform macosx \
-    --minimum-deployment-target 14.0 \
-    --app-icon "Claudex" \
-    --include-all-app-icons \
-    --output-partial-info-plist "${ICON_TMP}/Icon-Info.plist" \
-    "${ICON_FILE}" 2>&1 | grep -q "output-files"; then
-    echo "    Icon compiled via actool"
-else
-    echo "    actool failed, falling back to .icns"
-    # Fallback: use the .icns we generated earlier
+ICON_COMPILED=false
+# Try repo-local icon first, then ~/Downloads fallback
+for icon_candidate in "${ICON_FILE}" "${HOME}/Downloads/Claudex.icon"; do
+    if [ -f "${icon_candidate}" ]; then
+        ICON_TMP=$(mktemp -d)
+        RESOURCES_ABS=$(cd "${RESOURCES}" && pwd)
+        if xcrun actool \
+            --compile "${RESOURCES_ABS}" \
+            --platform macosx \
+            --minimum-deployment-target 14.0 \
+            --app-icon "Claudex" \
+            --include-all-app-icons \
+            --output-partial-info-plist "${ICON_TMP}/Icon-Info.plist" \
+            "${icon_candidate}" 2>&1 | grep -q "output-files"; then
+            echo "    Icon compiled via actool"
+            ICON_COMPILED=true
+        fi
+        rm -rf "${ICON_TMP}"
+        ${ICON_COMPILED} && break
+    fi
+done
+if ! ${ICON_COMPILED}; then
     if [ -f "AppIcon.icns" ]; then
         cp AppIcon.icns "${RESOURCES}/AppIcon.icns"
+        echo "    Using fallback AppIcon.icns"
+    else
+        echo "    WARNING: No icon file found, app will use default icon"
     fi
 fi
-rm -rf "${ICON_TMP}"
 
 # Write Info.plist (CFBundleIconName for Assets.car, CFBundleIconFile for .icns fallback)
 cat > "${CONTENTS}/Info.plist" << 'PLIST'

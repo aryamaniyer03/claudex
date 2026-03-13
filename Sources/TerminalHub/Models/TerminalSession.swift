@@ -29,7 +29,7 @@ final class TerminalSession: ObservableObject, Identifiable {
         "th-" + id.uuidString.prefix(8).lowercased()
     }
 
-    init(name: String, directory: String, fontSize: CGFloat = Theme.defaultFontSize, fontName: String = "SF Mono", id: UUID = UUID(), initialCommand: String? = nil) {
+    init(name: String, directory: String, fontSize: CGFloat = Theme.defaultFontSize, fontName: String = "Menlo", id: UUID = UUID(), initialCommand: String? = nil) {
         self.id = id
         self.name = name
         self.initialDirectory = directory
@@ -86,6 +86,13 @@ final class TerminalSession: ObservableObject, Identifiable {
             .filter { pair in !stripPrefixes.contains(where: { pair.key.hasPrefix($0) }) }
             .map { "\($0.key)=\($0.value)" }
         envPairs.append("TERM=xterm-256color")
+        // Ensure UTF-8 locale so Claude Code renders Unicode symbols correctly
+        if !envPairs.contains(where: { $0.hasPrefix("LANG=") }) {
+            envPairs.append("LANG=en_US.UTF-8")
+        }
+        if !envPairs.contains(where: { $0.hasPrefix("LC_ALL=") }) {
+            envPairs.append("LC_ALL=en_US.UTF-8")
+        }
 
         // Launch via tmux if available — enables session persistence across app restarts
         if let tmuxPath = ShellUtility.findTmux() {

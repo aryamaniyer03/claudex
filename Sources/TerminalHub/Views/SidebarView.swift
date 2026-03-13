@@ -59,14 +59,32 @@ struct SidebarView: View {
 
     // MARK: - Logo
 
+    /// Safe resource bundle lookup that won't fatalError if the SPM resource bundle is missing.
+    private static let resourceBundle: Bundle? = {
+        let bundleName = "Claudex_Claudex"
+        // Check alongside the executable (standard SPM layout)
+        if let url = Bundle.main.url(forResource: bundleName, withExtension: "bundle"),
+           let bundle = Bundle(url: url) {
+            return bundle
+        }
+        // Check in Resources/ (app bundle layout)
+        if let resourceURL = Bundle.main.resourceURL,
+           let bundle = Bundle(url: resourceURL.appendingPathComponent("\(bundleName).bundle")) {
+            return bundle
+        }
+        return nil
+    }()
+
     static let logoImage: NSImage? = {
-        guard let url = Bundle.module.url(forResource: "claudex-logo", withExtension: "png"),
+        guard let bundle = resourceBundle,
+              let url = bundle.url(forResource: "claudex-logo", withExtension: "png"),
               let img = NSImage(contentsOf: url) else { return nil }
         return img
     }()
 
     static let iconImage: NSImage? = {
-        guard let url = Bundle.module.url(forResource: "claudex-icon", withExtension: "png"),
+        guard let bundle = resourceBundle,
+              let url = bundle.url(forResource: "claudex-icon", withExtension: "png"),
               let img = NSImage(contentsOf: url) else { return nil }
         return img
     }()

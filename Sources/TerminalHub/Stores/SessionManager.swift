@@ -38,7 +38,7 @@ final class SessionManager: ObservableObject {
     @Published var selectedSessionID: UUID?
     @Published var showImportSheet = false
     @Published var fontSize: CGFloat = Theme.defaultFontSize
-    @Published var fontName: String = "SF Mono"
+    @Published var fontName: String = "Menlo"
 
     // Preview panel
     @Published var previewFiles: [PreviewFile] = []
