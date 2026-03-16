@@ -169,6 +169,8 @@ if ${CREATE_DMG}; then
     rm -rf "${DMG_STAGING_DIR}"
     mkdir -p "${DMG_STAGING_DIR}"
     cp -R "${APP_BUNDLE}" "${DMG_STAGING_DIR}/${APP_BUNDLE}"
+    # Symlink to /Applications for drag-to-install
+    ln -s /Applications "${DMG_STAGING_DIR}/Applications"
     rm -f "${SCRIPT_DIR}/${DMG_NAME}"
     hdiutil create \
         -volname "${APP_NAME}" \

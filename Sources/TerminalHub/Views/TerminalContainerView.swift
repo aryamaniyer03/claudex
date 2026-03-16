@@ -60,17 +60,13 @@ struct RawTerminalView: NSViewRepresentable {
     }
 }
 
-/// Container NSView that accepts file drops and handles scroll for tmux.
+/// Container NSView that accepts file drops.
 final class PaddedContainerView: NSView {
     var session: TerminalSession?
-    /// Callback fired when Cmd+Arrow shortcut is intercepted.
-    /// The Bool parameter is `true` for next (Down) and `false` for previous (Up).
-    private static var swizzled = false
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         registerForDraggedTypes([.fileURL])
-        Self.installScrollSwizzle()
         // Retry keyDown swizzle now that SwiftTerm classes are loaded
         if let mgr = SessionManager.sharedForSwizzle {
             SessionManager.installKeySwizzle(manager: mgr)
@@ -80,73 +76,9 @@ final class PaddedContainerView: NSView {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         registerForDraggedTypes([.fileURL])
-        Self.installScrollSwizzle()
         if let mgr = SessionManager.sharedForSwizzle {
             SessionManager.installKeySwizzle(manager: mgr)
         }
-    }
-
-    // MARK: - Scroll → tmux SGR mouse events
-
-    /// Replace SwiftTerm's scrollWheel so it sends SGR mouse events to tmux
-    /// instead of scrolling its own (empty) local buffer.
-    private static func installScrollSwizzle() {
-        guard !swizzled else { return }
-        swizzled = true
-
-        let classNames = ["SwiftTerm.LocalProcessTerminalView", "LocalProcessTerminalView"]
-        guard let termClass = classNames.lazy.compactMap({ NSClassFromString($0) }).first else { return }
-
-        let scrollSel = #selector(NSView.scrollWheel(with:))
-        if let scrollMethod = class_getInstanceMethod(termClass, scrollSel) {
-            let scrollBlock: @convention(block) (NSView, NSEvent) -> Void = { view, event in
-                var sup = view.superview
-                while let s = sup {
-                    if let container = s as? PaddedContainerView {
-                        container.tmuxScroll(event: event)
-                        return
-                    }
-                    sup = s.superview
-                }
-            }
-            method_setImplementation(scrollMethod, imp_implementationWithBlock(scrollBlock))
-        }
-    }
-
-    /// Accumulated fractional scroll delta for smooth trackpad scrolling.
-    private static var scrollAccumulator: CGFloat = 0
-
-    /// Convert a scroll event into SGR mouse escape sequences for tmux.
-    /// Button 64 = scroll up, 65 = scroll down.  Format: \e[<btn;1;1M
-    func tmuxScroll(event: NSEvent) {
-        guard let session = session else { return }
-
-        let dy = event.scrollingDeltaY
-        if abs(dy) < 0.1 { return }
-
-        if event.hasPreciseScrollingDeltas {
-            // Trackpad: accumulate small deltas, emit 1 line per ~30pt
-            PaddedContainerView.scrollAccumulator += dy
-            let threshold: CGFloat = 30
-            let lines = Int(PaddedContainerView.scrollAccumulator / threshold)
-            if lines == 0 { return }
-            PaddedContainerView.scrollAccumulator -= CGFloat(lines) * threshold
-            let button = lines > 0 ? 64 : 65
-            let seq = "\u{1b}[<\(button);1;1M"
-            for _ in 0..<abs(lines) {
-                session.sendText(seq)
-            }
-        } else {
-            // Mouse wheel: 1 line per click
-            let button = dy > 0 ? 64 : 65
-            let seq = "\u{1b}[<\(button);1;1M"
-            session.sendText(seq)
-        }
-    }
-
-    /// Also handle scroll events that land on the padding (not the terminal).
-    override func scrollWheel(with event: NSEvent) {
-        tmuxScroll(event: event)
     }
 
     override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {

@@ -66,9 +66,9 @@ final class TerminalSession: ObservableObject, Identifiable {
         view.nativeForegroundColor = NSColor(srgbRed: 0xEC/255.0, green: 0xEC/255.0, blue: 0xEA/255.0, alpha: 1.0)
         view.caretColor = NSColor(srgbRed: 0xD9/255.0, green: 0x78/255.0, blue: 0x57/255.0, alpha: 1.0)
 
-        // Disable mouse reporting so SwiftTerm handles text selection locally.
-        // Scroll is handled separately via SGR escape sequences sent directly.
-        view.allowMouseReporting = false
+        // Let tmux handle mouse events (scroll, selection) natively.
+        // tmux config has `mouse on`, so scroll → copy-mode works automatically.
+        view.allowMouseReporting = true
 
         if let font = NSFont(name: fontNameOverride, size: fontSizeOverride) ?? NSFont(name: "Menlo", size: fontSizeOverride) {
             view.font = font
